@@ -84,3 +84,8 @@ func (c *GithubClient) UpdateComment(owner, repo string, commentID int64, body s
 
 	return comment, err
 }
+
+func (c *GithubClient) DeleteComment(owner, repo string, commentID int64) (error) {
+	_, err := c.Issues.DeleteComment(c.Context, owner, repo, int64(commentID))
+	return err
+}

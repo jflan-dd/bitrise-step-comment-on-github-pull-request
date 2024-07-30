@@ -48,7 +48,13 @@ inputs:
       title: "Body"
       description: |
         Text of the message to send.
-      is_required: true
+      is_required: false
+  - delete_comment: false
+    opts:
+      title: "If the comment should be deleted"
+      description: |
+        If set to true the comment will be deleted. Requires update_comment_tag.
+      is_required: false
   - repository_url: "$GIT_REPOSITORY_URL"
     opts:
       title: "Repository URL"

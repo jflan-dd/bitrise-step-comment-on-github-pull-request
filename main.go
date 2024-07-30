@@ -12,7 +12,8 @@ import (
 
 type Config struct {
 	AuthToken        stepconf.Secret `env:"personal_access_token,required"`
-	Body             string          `env:"body,required"`
+	Body             string          `env:"body"`
+	DeleteComment    bool            `env:"delete_comment"`
 	RepositoryURL    string          `env:"repository_url,required"`
 	IssueNumber      int             `env:"issue_number,required"`
 	APIBaseURL       string          `env:"api_base_url,required"`
@@ -47,6 +48,29 @@ func main() {
 		githubClient = github.NewClient(string(conf.AuthToken))
 	} else {
 		githubClient = github.NewEnterpriseClient(conf.APIBaseURL, string(conf.AuthToken))
+	}
+
+	if conf.DeleteComment == true {
+		if conf.UpdateCommentTag == "" {
+			log.Errorf("Cannot delete a comment without an update_comment_tag")
+			os.Exit(1)
+		}
+
+		taggedComment, _ := githubClient.GetFirstCommentWithTag(owner, repo, conf.IssueNumber, decoratedTag(conf.UpdateCommentTag))
+
+		if taggedComment == nil {
+			log.Successf("Comment with tag %s does not exist. Nothing to do.\n", conf.UpdateCommentTag)
+			os.Exit(0)
+		}
+
+		err := githubClient.DeleteComment(owner, repo, *taggedComment.ID)
+		if err != nil {
+			log.Errorf("Github API call failed when deleting comment: %w\n", err)
+			os.Exit(1)
+		} else {
+			log.Successf("Successfully deleted comment %s\n", conf.UpdateCommentTag)
+			os.Exit(0)
+		}
 	}
 
 	// if tag is set, try to find and update existing comment
